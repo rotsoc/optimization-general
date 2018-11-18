@@ -8,5 +8,17 @@ using Clp
 
 m=Model(with_optimizer(Clp.Optimizer))
 
-@variable(m, 0<=x₁<=7)
-@variable(m, 0<=x₂<=4)
+@variable(m, 0<=x<=7)
+@variable(m, 0<=y<=4)
+
+@objective(m, Min, 0.3*x + 0.6*y)
+
+@constraint(m, 0.1<=0.1*x+0.3*y<=1.3)
+@constraint(m, 0.2<=0.2*x+0.7*y<=1.4)
+@constraint(m, 0.3<=0.05*x+0.17*y<=1.5)
+
+JuMP.optimize!(m)
+
+println("Objective value: ", JuMP.objective_value(m))
+println("x = ", JuMP.value(x))
+println("y = ", JuMP.value(y))
