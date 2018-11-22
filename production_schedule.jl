@@ -6,19 +6,22 @@ using JuMP
 using Clp
 
 
-m=Model(with_optimizer(Clp.Optimizer))
+m=Model(solver = ClpSolver())
 
 T = 4 # 4 weeks horizon
+dT = 0.1
 
-@expression(m, g[t=1:T], -t+5)
+@expression(m, g[t=1:dT:T], -t+1)
 
-@variable(m, 0 <= x[1:T] <= 0.8)
-@variable(m, 0 <= y[1:T] <= 0.9, start=0.0)
+@variable(m, 0 <= x[1:dT:T] <= 0.9)
+@variable(m, 0 <= y[1:dT:T] <= 0.9, start=0.0)
 
-@objective(m, Min, 2*sum(x[i] for i=1:T) + 3*sum(y[i] for i=1:T))
+@objective(m, Min, 2*dT*sum(x[round(i)] for i=1:dT:T) + 3*dT*sum(y[round(i)]
+                                                                for i=1:dT:T))
 
-@constraint(m, [t in 1:(T-1)], y[t+1] == y[t] + (x[t+1] - g[t+1]))
+@constraint(m, [t in 1:dT:(T-dT)], y[round(t+dT)] == y[t] +
+                                        (x[round(t+dT)] - g[round(t+dT)]))
 
-JuMP.optimize!(m)
+status = solve(m)
 
-println("Objective value: ", JuMP.objective_value(m))
+println("Objective value: ", getobjectivevalue(m))

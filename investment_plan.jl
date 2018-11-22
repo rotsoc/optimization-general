@@ -11,9 +11,7 @@
 using JuMP
 using Clp
 
-const MOI = JuMP.MathOptInterface
-
-m=Model(with_optimizer(Clp.Optimizer))
+m=Model(solver=ClpSolver())
 
 portfolios = ["1-year","2-year","3-year"]
 t = [1,2,3,4,5]
@@ -23,16 +21,16 @@ numportf = length(portfolios)
 numt = length(t)
 
 
-@variable(m, 0<=x[1:numportf])
+@variable(m, x[1:numportf]>=0)
 
 @constraint(m, sum(x[i] for i=1:numportf)<=5000)
 
 @objective(m, Max, sum(x[i]*interest[i]*sum((1+interest[i])^(t-1)
                     for t=1:Int(floor(5/duration[i]))) for i=1:numportf))
 
-JuMP.optimize!(m)
+status = solve(m)
 
-println("Objective value: ", JuMP.objective_value(m))
-println("x[1]: ", JuMP.value(x[1]))
-println("x[2]: ", JuMP.value(x[2]))
-println("x[3]: ", JuMP.value(x[3]))
+println("Objective value: ", getobjectivevalue(m))
+println("x[1]: ", getvalue(x[1]))
+println("x[2]: ", getvalue(x[2]))
+println("x[3]: ", getvalue(x[3]))
